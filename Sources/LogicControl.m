@@ -266,7 +266,7 @@ static char Mackie7SegDisplayCharToChar(uint8_t c, BOOL * dotted);
 			
 			while (*src != 0xF7)
 			{
-				if (i <= 56)
+				if (i < 56)
 					stripTopCString[i] = *src;
 				else
 					stripBottomCString[i - 57] = *src;
