@@ -5,52 +5,24 @@
 //  Created by Antonio "Willy" Malara on 05/02/11.
 //  Copyright 2011 __MyCompanyName__. All rights reserved.
 //
-
+#import <CoreMIDI/CoreMIDI.h>
 #import "LogicControl.h"
 
 static void InputPortCallback (const MIDIPacketList *pktlist, void *refCon, void *connRefCon);
 static char Mackie7SegDisplayCharToChar(uint8_t c, BOOL * dotted);
 
-@interface LogicControl()
-
-@property(nonatomic, assign)   BOOL       online;
-
-@property(nonatomic, retain)   NSString * tcrCode;
-@property(nonatomic, retain)   NSString * stripTop;
-@property(nonatomic, retain)   NSString * stripBottom;
-
-@property(nonatomic, readonly) uint8_t  * sysexPrefix;
-
-- (void)createMidiClient;
-- (void)disposeMidiClient;
-
-- (BOOL)acceptsSysexWithPrefix:(uint8_t *)sysex;
-
-- (void)sendHostConnectionQuery;
-- (void)sendHostConnectionConfirmation;
-- (void)sendVersionReply;
-
-/* - */
-
-- (void)sendNoteOn:(uint8_t)channel note:(uint8_t)note velocity:(uint8_t)velocity;
-
-- (void)receivedNoteOnChannel:(uint8_t)channel note:(uint8_t)note velocity:(uint8_t)velocity;
-- (void)receivedControlChangeChannel:(uint8_t)channel controller:(uint8_t)controller value:(uint8_t)value;
-- (void)receivedChannelPressureChannel:(uint8_t)channel value:(uint8_t)value;
-- (void)receivedPitchWheelChannel:(uint8_t)channel value:(uint16_t)value;
-- (void)receivedSysEx:(uint8_t *)d;
-
-- (void)sendMidiBytes:(uint8_t *)bytes count:(size_t)count;
-
-@end
-
 @implementation LogicControl
-
-@synthesize name;
-@synthesize online;
-@synthesize tcrCode;
-@synthesize stripTop;
-@synthesize stripBottom;
+{        
+	MIDIClientRef   client;
+	
+	MIDIEndpointRef source;
+	MIDIEndpointRef destination;
+	
+	uint8_t         modelId;
+	char            tcrCodeCString[13];
+	char            stripTopCString[58];
+	char            stripBottomCString[58];
+}
 
 - (id)init;
 {
@@ -62,7 +34,7 @@ static char Mackie7SegDisplayCharToChar(uint8_t c, BOOL * dotted);
 	if ((self = [super init]) == nil)
 		return nil;
 	
-	name = [theName copy];
+	_name = [theName copy];
 	
 	memset(tcrCodeCString, 0x20, sizeof(tcrCodeCString));
 	tcrCodeCString[sizeof(tcrCodeCString)-1] = 0;
@@ -80,21 +52,17 @@ static char Mackie7SegDisplayCharToChar(uint8_t c, BOOL * dotted);
 
 - (void)dealloc;
 {
-	[name release];
-	[super dealloc];
+	[self disposeMidiClient];
 }
 
 - (void)createMidiClient;
 {
 	OSStatus    r;
-	CFStringRef theName;
-	
-	theName = (CFStringRef)name;
+	CFStringRef theName = (__bridge CFStringRef)_name;
 	
 	r = MIDIClientCreate(theName, NULL, NULL, &client);
-	
 	r = MIDISourceCreate(client, theName, &source);
-	r = MIDIDestinationCreate(client, theName, InputPortCallback, self, &destination);
+	r = MIDIDestinationCreate(client, theName, InputPortCallback, (__bridge void *)(self), &destination);
 }
 
 - (void)disposeMidiClient;
@@ -216,7 +184,7 @@ static char Mackie7SegDisplayCharToChar(uint8_t c, BOOL * dotted);
 		if (digit < 0x0C)
 		{
 			tcrCodeCString[11 - digit] = Mackie7SegDisplayCharToChar(value, &dotted);
-			self.tcrCode = [NSString stringWithCString:tcrCodeCString encoding:NSUTF8StringEncoding];
+			_tcrCode = [NSString stringWithCString:tcrCodeCString encoding:NSUTF8StringEncoding];
 			NSLog(@"Mackie TCR Display updated: %s", tcrCodeCString);
 		}
 		else if (digit < 0x0C)
@@ -275,10 +243,10 @@ static char Mackie7SegDisplayCharToChar(uint8_t c, BOOL * dotted);
 				i++;
 			}
 			
-			self.stripTop = [NSString stringWithCString:stripTopCString encoding:NSUTF8StringEncoding];
-			self.stripBottom = [NSString stringWithCString:stripBottomCString encoding:NSUTF8StringEncoding];
+			_stripTop    = [NSString stringWithCString:stripTopCString encoding:NSUTF8StringEncoding];
+			_stripBottom = [NSString stringWithCString:stripBottomCString encoding:NSUTF8StringEncoding];
 			
-			if (0)
+			if (1)
 			{
 				unsigned char pippo[0x70] = { 0 };
 				unsigned char offset = d[6];
@@ -353,39 +321,39 @@ static char Mackie7SegDisplayCharToChar(uint8_t c, BOOL * dotted);
 
 static void InputPortCallback(const MIDIPacketList * pktlist, void * refCon, void * connRefCon)
 {
-	NSAutoreleasePool * pool   = [[NSAutoreleasePool alloc] init];
 	MIDIPacket        * packet = (MIDIPacket *)pktlist->packet;
-	LogicControl      * zelf   = (LogicControl *)refCon;
+	LogicControl      * zelf   = (__bridge LogicControl *)refCon;
 	
-	for (unsigned int j = 0; j < pktlist->numPackets; j++)
-	{
-		uint8_t * d = packet->data;
-		uint8_t   c = d[0] & 0xF0;
-		
-		switch (d[0] & 0xF0)
-		{
-			case 0x90:
-				[zelf receivedNoteOnChannel:c note:d[1] velocity:d[2]];
-				break;
-			
-			case 0xB0:
-				[zelf receivedControlChangeChannel:c controller:d[1] value:d[2]];
-				break;
-			
-			case 0xD0:
-				[zelf receivedChannelPressureChannel:c value:(d[1] | (d[2] << 7))];
-				break;
-			
-			case 0xF0:
-				if ([zelf acceptsSysexWithPrefix:packet->data])
-					[zelf receivedSysEx:packet->data];
-				break;
-		}
-		
-		packet = MIDIPacketNext(packet);		
-	}
-	
-	[pool release];
+    @autoreleasepool
+    {
+        for (unsigned int j = 0; j < pktlist->numPackets; j++)
+        {
+            uint8_t * d = packet->data;
+            uint8_t   c = d[0] & 0xF0;
+            
+            switch (d[0] & 0xF0)
+            {
+                case 0x90:
+                    [zelf receivedNoteOnChannel:c note:d[1] velocity:d[2]];
+                    break;
+                    
+                case 0xB0:
+                    [zelf receivedControlChangeChannel:c controller:d[1] value:d[2]];
+                    break;
+                    
+                case 0xD0:
+                    [zelf receivedChannelPressureChannel:c value:(d[1] | (d[2] << 7))];
+                    break;
+                    
+                case 0xF0:
+                    if ([zelf acceptsSysexWithPrefix:packet->data])
+                        [zelf receivedSysEx:packet->data];
+                    break;
+            }
+            
+            packet = MIDIPacketNext(packet);		
+        }
+    }
 }
 
 static char Mackie7SegDisplayCharToChar(uint8_t c, BOOL * dotted)

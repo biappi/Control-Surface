@@ -6,21 +6,9 @@
 //  Copyright 2011 __MyCompanyName__. All rights reserved.
 //
 
-#import <Cocoa/Cocoa.h>
-#import <CoreMIDI/CoreMIDI.h>
+#import <Foundation/Foundation.h>
 
 @interface LogicControl : NSObject
-{
-	MIDIClientRef   client;
-	
-	MIDIEndpointRef source;
-	MIDIEndpointRef destination;
-	
-	uint8_t         modelId;
-	char            tcrCodeCString[13];
-	char            stripTopCString[58];
-	char            stripBottomCString[58];
-}
 
 @property(nonatomic, readonly)         NSString * name;
 @property(nonatomic, readonly)         BOOL       online;
