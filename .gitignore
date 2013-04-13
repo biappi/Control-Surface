@@ -1,4 +1,7 @@
+xcuserdata
+xcshareddata
+project.xcworkspace
+*.swp
+*.swo
+*~
 .DS_Store
-*.mode?v?
-*.pbxuser
-build/
