@@ -214,6 +214,7 @@
 				INFOPLIST_FILE = "Resources/ControlSurface-Info.plist";
 				INSTALL_PATH = "$(HOME)/Applications";
 				PRODUCT_NAME = ControlSurface;
+				SDKROOT = "";
 			};
 			name = Debug;
 		};
@@ -229,6 +230,7 @@
 				INFOPLIST_FILE = "Resources/ControlSurface-Info.plist";
 				INSTALL_PATH = "$(HOME)/Applications";
 				PRODUCT_NAME = ControlSurface;
+				SDKROOT = "";
 			};
 			name = Release;
 		};
