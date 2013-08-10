@@ -74,7 +74,8 @@ static char Mackie7SegDisplayCharToChar(uint8_t c, BOOL * dotted);
 	stripBottomCString[sizeof(stripBottomCString)-1] = 0;
 	
 	[self createMidiClient];
-	
+	[self sendHostConnectionQuery];
+    
 	return self;
 }
 
@@ -269,14 +270,17 @@ static char Mackie7SegDisplayCharToChar(uint8_t c, BOOL * dotted);
 				if (i < 56)
 					stripTopCString[i] = *src;
 				else
-					stripBottomCString[i - 57] = *src;
+					stripBottomCString[i - 0x38] = *src;
 				
 				src++;
 				i++;
 			}
-			
-			self.stripTop = [NSString stringWithCString:stripTopCString encoding:NSUTF8StringEncoding];
-			self.stripBottom = [NSString stringWithCString:stripBottomCString encoding:NSUTF8StringEncoding];
+
+			dispatch_async(dispatch_get_main_queue(),
+                           ^{
+                               self.stripTop = [NSString stringWithCString:stripTopCString encoding:NSUTF8StringEncoding];
+                               self.stripBottom = [NSString stringWithCString:stripBottomCString encoding:NSUTF8StringEncoding];
+                           });
 			
 			if (0)
 			{
