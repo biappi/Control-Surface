@@ -14,6 +14,7 @@
 @property(nonatomic, assign) IBOutlet NSWindow * window;
 @property(nonatomic, retain) LogicControl * logicControl;
 
+- (IBAction)connect:(id)sender;
 - (IBAction)pressButton:(NSButton *)sender;
 
 @end

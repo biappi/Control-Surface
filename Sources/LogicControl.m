@@ -26,7 +26,6 @@ static char Mackie7SegDisplayCharToChar(uint8_t c, BOOL * dotted);
 
 - (BOOL)acceptsSysexWithPrefix:(uint8_t *)sysex;
 
-- (void)sendHostConnectionQuery;
 - (void)sendHostConnectionConfirmation;
 - (void)sendVersionReply;
 

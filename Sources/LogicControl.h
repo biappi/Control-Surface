@@ -31,6 +31,7 @@
 
 - (id)initWithName:(NSString *)name;
 
+- (void)sendHostConnectionQuery;
 - (void)buttonPress:(uint8_t)buttonId;
 
 @end

@@ -18,6 +18,10 @@
 	self.logicControl = [[LogicControl new] autorelease];
 }
 
+- (IBAction)connect:(id)sender {
+    [self.logicControl sendHostConnectionQuery];
+}
+
 - (IBAction)pressButton:(NSButton *)sender;
 {
 	[self.logicControl buttonPress:(uint8_t)[sender tag]];
