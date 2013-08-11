@@ -73,7 +73,6 @@ static char Mackie7SegDisplayCharToChar(uint8_t c, BOOL * dotted);
 	stripBottomCString[sizeof(stripBottomCString)-1] = 0;
 	
 	[self createMidiClient];
-	[self sendHostConnectionQuery];
     
 	return self;
 }
@@ -86,15 +85,17 @@ static char Mackie7SegDisplayCharToChar(uint8_t c, BOOL * dotted);
 
 - (void)createMidiClient;
 {
-	OSStatus    r;
-	CFStringRef theName;
-	
-	theName = (CFStringRef)name;
-	
-	r = MIDIClientCreate(theName, NULL, NULL, &client);
-	
-	r = MIDISourceCreate(client, theName, &source);
-	r = MIDIDestinationCreate(client, theName, InputPortCallback, self, &destination);
+	CFStringRef theName = (CFStringRef)name;
+    SInt32 uniqueId = name.hash;
+
+    MIDIClientCreate(theName, NULL, NULL, &client);
+    MIDIObjectSetIntegerProperty(client, kMIDIPropertyUniqueID, uniqueId);
+    
+    MIDISourceCreate(client, theName, &source);
+    MIDIObjectSetIntegerProperty(source, kMIDIPropertyUniqueID, uniqueId + 1);
+    
+    MIDIDestinationCreate(client, theName, InputPortCallback, self, &destination);
+    MIDIObjectSetIntegerProperty(destination, kMIDIPropertyUniqueID, uniqueId + 2);
 }
 
 - (void)disposeMidiClient;
