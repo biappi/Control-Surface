@@ -282,21 +282,6 @@ static char Mackie7SegDisplayCharToChar(uint8_t c, BOOL * dotted);
                                self.stripBottom = [NSString stringWithCString:stripBottomCString encoding:NSUTF8StringEncoding];
                            });
 			
-			if (0)
-			{
-				unsigned char pippo[0x70] = { 0 };
-				unsigned char offset = d[6];
-				
-				unsigned char * src = &d[7];
-				unsigned char * dst = pippo;
-				
-				while (*src != 0xF7)
-					*(dst++) = *(src++);
-				
-				*dst = 0;
-				
-				NSLog(@"Mackie LCD Update, offset: %02x string: %s", offset, pippo);
-			}
 			break;
 		}
 			
@@ -347,8 +332,6 @@ static char Mackie7SegDisplayCharToChar(uint8_t c, BOOL * dotted);
 	
 	curPacket = MIDIPacketListInit(packetList);
 	curPacket = MIDIPacketListAdd(packetList, 1024, curPacket, 0, count, bytes);
-	
-	NSLog(@" >>> %@", [NSData dataWithBytes:bytes length:count]);
 	
 	MIDIReceived(source, packetList);
 }
