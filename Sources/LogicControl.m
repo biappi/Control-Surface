@@ -217,15 +217,19 @@ static char Mackie7SegDisplayCharToChar(uint8_t c, BOOL * dotted);
 		if (digit < 0x0C)
 		{
 			tcrCodeCString[11 - digit] = Mackie7SegDisplayCharToChar(value, &dotted);
-			self.tcrCode = [NSString stringWithCString:tcrCodeCString encoding:NSUTF8StringEncoding];
-			NSLog(@"Mackie TCR Display updated: %s", tcrCodeCString);
+            NSLog(@"Mackie TCR Display updated: %s", tcrCodeCString);
+            
+            dispatch_async(dispatch_get_main_queue(),
+                           ^{
+                               self.tcrCode = [NSString stringWithCString:tcrCodeCString encoding:NSUTF8StringEncoding];
+                           });
 		}
 		else if (digit < 0x0C)
 		{
 			NSLog(@"Mackie PN Display");
 		}
 		
-		NSLog(@"Mackie TCR Display digit %02x char '%c'", controller, Mackie7SegDisplayCharToChar(value, &dotted));
+		NSLog(@"Mackie TCR Display digit %02x char %02x '%c'", controller, value, Mackie7SegDisplayCharToChar(value, &dotted));
 	}
 }
 
@@ -276,10 +280,14 @@ static char Mackie7SegDisplayCharToChar(uint8_t c, BOOL * dotted);
 				i++;
 			}
 
+            
+            NSString * top    = [NSString stringWithCString:stripTopCString encoding:NSUTF8StringEncoding];
+            NSString * bottom = [NSString stringWithCString:stripBottomCString encoding:NSUTF8StringEncoding];
+            
 			dispatch_async(dispatch_get_main_queue(),
                            ^{
-                               self.stripTop = [NSString stringWithCString:stripTopCString encoding:NSUTF8StringEncoding];
-                               self.stripBottom = [NSString stringWithCString:stripBottomCString encoding:NSUTF8StringEncoding];
+                               self.stripTop    = top;
+                               self.stripBottom = bottom;
                            });
 			
 			break;
