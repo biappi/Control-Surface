@@ -385,7 +385,7 @@ static void InputPortCallback(const MIDIPacketList * pktlist, void * refCon, voi
 
 static char Mackie7SegDisplayCharToChar(uint8_t c, BOOL * dotted)
 {
-	char r  = (c <  0x20) ? c + 0x40 : c;
-	*dotted = (c >= 0x40);
-	return (*dotted) ? r - 0x40 : c;
+    static const char * table = "@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_ !@#$%\'()*+,-./0123456789:;<=>?";
+    *dotted = !!(c & 0x40);
+    return table[c & 0x3f];
 }
