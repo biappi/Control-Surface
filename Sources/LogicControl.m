@@ -217,19 +217,13 @@ static char Mackie7SegDisplayCharToChar(uint8_t c, BOOL * dotted);
 		if (digit < 0x0C)
 		{
 			tcrCodeCString[11 - digit] = Mackie7SegDisplayCharToChar(value, &dotted);
-            NSLog(@"Mackie TCR Display updated: %s", tcrCodeCString);
             
+            NSString * tcr = [NSString stringWithCString:tcrCodeCString encoding:NSUTF8StringEncoding];
             dispatch_async(dispatch_get_main_queue(),
                            ^{
-                               self.tcrCode = [NSString stringWithCString:tcrCodeCString encoding:NSUTF8StringEncoding];
+                               self.tcrCode = tcr;
                            });
 		}
-		else if (digit < 0x0C)
-		{
-			NSLog(@"Mackie PN Display");
-		}
-		
-		NSLog(@"Mackie TCR Display digit %02x char %02x '%c'", controller, value, Mackie7SegDisplayCharToChar(value, &dotted));
 	}
 }
 
@@ -385,7 +379,7 @@ static void InputPortCallback(const MIDIPacketList * pktlist, void * refCon, voi
 
 static char Mackie7SegDisplayCharToChar(uint8_t c, BOOL * dotted)
 {
-    static const char * table = "@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_ !@#$%\'()*+,-./0123456789:;<=>?";
+    static const char * table = "@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_ !\"#$%&'()*+,-./0123456789:;<=>?";
     *dotted = !!(c & 0x40);
     return table[c & 0x3f];
 }
